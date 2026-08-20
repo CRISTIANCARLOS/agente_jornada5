@@ -1,0 +1,35 @@
+graph TD
+    %% Orquestrador Principal
+    Root[agente_g2g<br><i>Orquestrador da Taxa de Passeio -> G2G</i>]
+    
+    %% Subagentes
+    SA1[SA1_tempo_g2g<br><i>Mede a média e estatísticas do tempo de G2G</i>]
+    SA2[SA2_simultaneidade<br><i>Avalia simultaneidade e ociosidade</i>]
+    SA3[SA3_ofensores<br><i>Ranqueia ofensores de passeio</i>]
+    SA4[SA4_simulacao<br><i>Simula presets e quantifica ganho</i>]
+    
+    %% Ferramentas
+    T1[[get_media_g2g]]
+    T2[[get_simultaneidade]]
+    T3[[get_ofensores]]
+    T4[[simular_preset]]
+    
+    %% Relações de subagentes
+    Root --> SA1
+    Root --> SA2
+    Root --> SA3
+    Root --> SA4
+    
+    %% Relações de ferramentas
+    SA1 -. usa ferramenta .-> T1
+    SA2 -. usa ferramenta .-> T2
+    SA3 -. usa ferramenta .-> T3
+    SA4 -. usa ferramenta .-> T4
+    
+    classDef orchestrator fill:#f9f0ff,stroke:#b19cd9,stroke-width:2px
+    classDef subagent fill:#e1f5fe,stroke:#4fc3f7,stroke-width:2px
+    classDef tool fill:#fff3e0,stroke:#ffb74d,stroke-width:2px
+    
+    class Root orchestrator
+    class SA1,SA2,SA3,SA4 subagent
+    class T1,T2,T3,T4 tool
