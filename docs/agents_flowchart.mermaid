@@ -1,35 +1,46 @@
-graph TD
-    %% Orquestrador Principal
-    Root[agente_g2g<br><i>Orquestrador da Taxa de Passeio -> G2G</i>]
+flowchart TD
+    User((Usuário)) -->|Pergunta| Orquestrador[Agente Orquestrador]
     
-    %% Subagentes
-    SA1[SA1_tempo_g2g<br><i>Mede a média e estatísticas do tempo de G2G</i>]
-    SA2[SA2_simultaneidade<br><i>Avalia simultaneidade e ociosidade</i>]
-    SA3[SA3_ofensores<br><i>Ranqueia ofensores de passeio</i>]
-    SA4[SA4_simulacao<br><i>Simula presets e quantifica ganho</i>]
+    subgraph Subagentes [Agentes Especializados]
+        SA1[SA-1: Tempo G2G]
+        SA2[SA-2: Simultaneidade]
+        SA3[SA-3: Ofensores]
+        SA4[SA-4: Simulação]
+        SA5[SA-5: Validador]
+    end
+
+    Orquestrador -->|Roteia intenção| SA1
+    Orquestrador -->|Roteia intenção| SA2
+    Orquestrador -->|Roteia intenção| SA3
+    Orquestrador -->|Roteia intenção| SA4
+    Orquestrador -->|Valida métricas| SA5
     
-    %% Ferramentas
-    T1[[get_media_g2g]]
-    T2[[get_simultaneidade]]
-    T3[[get_ofensores]]
-    T4[[simular_preset]]
+    subgraph Infraestrutura de Dados [Cálculo Fora do LLM]
+        Tools[tools.py]
+        EngineSQL{{Engine SQL / CTEs\nTIMESTAMP_DIFF, AVG, SUM}}
+        BQ[(BigQuery\nrw_mdriver)]
+        
+        Tools -->|Query parametrizada| EngineSQL
+        EngineSQL -->|Lê e Agrega| BQ
+        BQ -->|Resultados Agregados| EngineSQL
+    end
     
-    %% Relações de subagentes
-    Root --> SA1
-    Root --> SA2
-    Root --> SA3
-    Root --> SA4
+    SA1 <-->|Consulta via| Tools
+    SA2 <-->|Consulta via| Tools
+    SA3 <-->|Consulta via| Tools
+    SA4 <-->|Consulta via| Tools
+    SA5 <-->|Consulta via| Tools
     
-    %% Relações de ferramentas
-    SA1 -. usa ferramenta .-> T1
-    SA2 -. usa ferramenta .-> T2
-    SA3 -. usa ferramenta .-> T3
-    SA4 -. usa ferramenta .-> T4
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA1
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA2
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA3
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA4
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA5
+
+    SA1 -.->|Resposta estruturada| Orquestrador
+    SA2 -.->|Resposta estruturada| Orquestrador
+    SA3 -.->|Resposta estruturada| Orquestrador
+    SA4 -.->|Resposta estruturada| Orquestrador
+    SA5 -.->|Validação Final| Orquestrador
     
-    classDef orchestrator fill:#f9f0ff,stroke:#b19cd9,stroke-width:2px
-    classDef subagent fill:#e1f5fe,stroke:#4fc3f7,stroke-width:2px
-    classDef tool fill:#fff3e0,stroke:#ffb74d,stroke-width:2px
-    
-    class Root orchestrator
-    class SA1,SA2,SA3,SA4 subagent
-    class T1,T2,T3,T4 tool
+    Orquestrador -.->|Resposta final| User

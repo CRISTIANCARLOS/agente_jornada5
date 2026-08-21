@@ -43,17 +43,27 @@ flowchart TD
     Orquestrador -->|Roteia intenção| SA4
     Orquestrador -->|Valida métricas| SA5
     
-    SA1 -->|SQL Pushdown| BQ[(BigQuery\nrw_mdriver)]
-    SA2 -->|SQL Pushdown| BQ
-    SA3 -->|SQL Pushdown| BQ
-    SA4 -->|SQL Pushdown| BQ
-    SA5 -->|SQL Pushdown| BQ
+    subgraph Infraestrutura de Dados [Cálculo Fora do LLM]
+        Tools[tools.py]
+        EngineSQL{{Engine SQL / CTEs\nTIMESTAMP_DIFF, AVG, SUM}}
+        BQ[(BigQuery\nrw_mdriver)]
+        
+        Tools -->|Query parametrizada| EngineSQL
+        EngineSQL -->|Lê e Agrega| BQ
+        BQ -->|Resultados Agregados| EngineSQL
+    end
     
-    BQ -.->|JSON Agg| SA1
-    BQ -.->|JSON Agg| SA2
-    BQ -.->|JSON Agg| SA3
-    BQ -.->|JSON Agg| SA4
-    BQ -.->|JSON Agg| SA5
+    SA1 <-->|Consulta via| Tools
+    SA2 <-->|Consulta via| Tools
+    SA3 <-->|Consulta via| Tools
+    SA4 <-->|Consulta via| Tools
+    SA5 <-->|Consulta via| Tools
+    
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA1
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA2
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA3
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA4
+    EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA5
 
     SA1 -.->|Resposta estruturada| Orquestrador
     SA2 -.->|Resposta estruturada| Orquestrador
