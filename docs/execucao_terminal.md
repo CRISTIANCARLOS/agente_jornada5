@@ -8,6 +8,7 @@ Antes de executar qualquer comando, certifique-se de que seu ambiente virtual Py
 ```powershell
 cd C:\Users\ce9x\agente_jornada_5
 .\.venv\Scripts\activate
+gcloud auth login
 ```
 
 ---

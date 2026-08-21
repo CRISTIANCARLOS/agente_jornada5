@@ -1,16 +1,39 @@
 import ssl
 import aiohttp
 
-# --- INÍCIO PATCH SSL (APENAS PARA TESTES LOCAIS) ---
+# --- INÍCIO PATCH SSL E FALLBACK DE REGIÃO ---
 ssl._create_default_https_context = ssl._create_unverified_context
 
+import re
 _original_request = aiohttp.ClientSession._request
-async def _unverified_request(self, method, url, *args, **kwargs):
+
+REGIOES_FALLBACK = ["us-central1", "us-east1", "us-east4", "us-west1", "us-west4", "europe-west4"]
+
+async def _custom_request(self, method, url, *args, **kwargs):
     kwargs["ssl"] = False
+    url_str = str(url)
+    
+    if "aiplatform.googleapis.com" in url_str:
+        for regiao in REGIOES_FALLBACK:
+            nova_url = re.sub(r'https://[a-zA-Z0-9-]+-aiplatform', f'https://{regiao}-aiplatform', url_str)
+            nova_url = re.sub(r'/locations/[a-zA-Z0-9-]+/', f'/locations/{regiao}/', nova_url)
+            
+            response = await _original_request(self, method, nova_url, *args, **kwargs)
+            
+            # Se for sucesso ou um erro diferente de permissão/não encontrado, retorna
+            if response.status not in (403, 404):
+                return response
+            
+            # Libera a resposta para evitar vazamento de memória e tenta a próxima
+            response.release()
+            
+        # Se esgotar as tentativas, retorna a chamada na URL original
+        return await _original_request(self, method, url_str, *args, **kwargs)
+        
     return await _original_request(self, method, url, *args, **kwargs)
 
-aiohttp.ClientSession._request = _unverified_request
-# --- FIM PATCH SSL ---
+aiohttp.ClientSession._request = _custom_request
+# --- FIM PATCH SSL E FALLBACK DE REGIÃO ---
 
 from google.adk.agents import Agent
 from . import tools, prompts
@@ -64,4 +87,3 @@ root_agent = Agent(
     sub_agents=[sa1, sa2, sa3, sa4, sa5],
     tools=[tools.painel_operacional]
 )
-
