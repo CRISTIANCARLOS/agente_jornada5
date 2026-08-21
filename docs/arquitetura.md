@@ -25,6 +25,45 @@ Os agentes utilizarão funções Python implementadas no GCP que acessam visões
 
 ## 5. Estrutura de Agentes
 
+```mermaid
+flowchart TD
+    User((Usuário)) -->|Pergunta| Orquestrador[Agente Orquestrador]
+    
+    subgraph Subagentes [Agentes Especializados]
+        SA1[SA-1: Tempo G2G]
+        SA2[SA-2: Simultaneidade]
+        SA3[SA-3: Ofensores]
+        SA4[SA-4: Simulação]
+        SA5[SA-5: Validador]
+    end
+
+    Orquestrador -->|Roteia intenção| SA1
+    Orquestrador -->|Roteia intenção| SA2
+    Orquestrador -->|Roteia intenção| SA3
+    Orquestrador -->|Roteia intenção| SA4
+    Orquestrador -->|Valida métricas| SA5
+    
+    SA1 -->|SQL Pushdown| BQ[(BigQuery\nrw_mdriver)]
+    SA2 -->|SQL Pushdown| BQ
+    SA3 -->|SQL Pushdown| BQ
+    SA4 -->|SQL Pushdown| BQ
+    SA5 -->|SQL Pushdown| BQ
+    
+    BQ -.->|JSON Agg| SA1
+    BQ -.->|JSON Agg| SA2
+    BQ -.->|JSON Agg| SA3
+    BQ -.->|JSON Agg| SA4
+    BQ -.->|JSON Agg| SA5
+
+    SA1 -.->|Resposta estruturada| Orquestrador
+    SA2 -.->|Resposta estruturada| Orquestrador
+    SA3 -.->|Resposta estruturada| Orquestrador
+    SA4 -.->|Resposta estruturada| Orquestrador
+    SA5 -.->|Validação Final| Orquestrador
+    
+    Orquestrador -.->|Resposta final| User
+```
+
 ### Agente Orquestrador
 - **Responsabilidade:** Atuar como roteador (identifica o *role*, entende a intenção e delega para os Subagentes SA-1 a SA-4).
 - **Regra de Ouro:** Não efetua cálculos matemáticos por conta própria e não infere dados não presentes na view. Se faltar informação, declara limitação de escopo.
