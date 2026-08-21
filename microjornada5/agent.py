@@ -68,7 +68,7 @@ sa4 = Agent(
     model=MODEL_PRO,
     description="Simula presets/reconfiguração e quantifica ganho.",
     instruction=prompts.SA4,
-    tools=[tools.simular_preset, tools.get_analise_ipar],
+    tools=[tools.simular_reducao_setup, tools.get_analise_ipar],
 )
 sa5 = Agent(
     name="SA5_validador",

@@ -51,3 +51,6 @@ Fornecer inteligência acionável e determinística para Analistas de Eficiênci
 Para mais detalhes sobre deploy e integração, consulte a pasta `/docs`.
 
 #O número (ID) desta nossa conversa é: 26dc2ba6-052c-4cff-95e3-8454f4285523
+
+Perguntas: Cara preciso o orquestrados chame todos os subagents para me passar uma analise completa G2G, passeio, disponibilidade de │ ilhas produto e capex. 5064 01/01/2025 á 31/12/2025
+

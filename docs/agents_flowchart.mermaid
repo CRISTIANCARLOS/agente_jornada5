@@ -44,3 +44,16 @@ flowchart TD
     SA5 -.->|Validação Final| Orquestrador
     
     Orquestrador -.->|Resposta final| User
+
+    %% Estilização de Cores
+    classDef userNode fill:#e1bee7,stroke:#333,stroke-width:2px,color:#000;
+    classDef orquestradorNode fill:#fff9c4,stroke:#333,stroke-width:2px,color:#000;
+    classDef subAgenteNode fill:#bbdefb,stroke:#333,stroke-width:1px,color:#000;
+    classDef dbNode fill:#c8e6c9,stroke:#333,stroke-width:2px,color:#000;
+    classDef infraNode fill:#ffcc80,stroke:#333,stroke-width:1px,color:#000;
+
+    class User userNode;
+    class Orquestrador orquestradorNode;
+    class SA1,SA2,SA3,SA4,SA5 subAgenteNode;
+    class BQ dbNode;
+    class Tools,EngineSQL infraNode;
