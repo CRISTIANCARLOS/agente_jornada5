@@ -3,32 +3,37 @@ flowchart TD
     
     subgraph Subagentes [Agentes Especializados]
         SA1[SA-1: Tempo G2G]
-        SA2[SA-2: Simultaneidade]
-        SA3[SA-3: Ofensores]
-        SA4[SA-4: Simulação]
-        SA5[SA-5: Validador]
+        SA2[SA-2: Simultaneidade (Top/Bottom)]
+        SA3[SA-3: Ofensores (Passeio/Produto)]
+        SA4[SA-4: Simulação de CAPEX]
+        SA5[SA-5: Validador IPAR]
     end
 
-    Orquestrador -->|Roteia intenção| SA1
-    Orquestrador -->|Roteia intenção| SA2
-    Orquestrador -->|Roteia intenção| SA3
-    Orquestrador -->|Roteia intenção| SA4
+    Orquestrador -->|Relatório Específico| SA1
+    Orquestrador -->|Relatório Específico| SA2
+    Orquestrador -->|Relatório Específico| SA3
+    Orquestrador -->|Relatório Específico| SA4
     Orquestrador -->|Valida métricas| SA5
+    Orquestrador ==>|Relatório Completo (Evita Timeout)| Painel[Ferramenta: painel_operacional]
     
-    subgraph Infraestrutura de Dados [Cálculo Fora do LLM]
+    subgraph Infraestrutura de Dados [Cálculo Híbrido Fora do LLM]
         Tools[tools.py]
-        EngineSQL{{Engine SQL / CTEs\nTIMESTAMP_DIFF, AVG, SUM}}
+        Painel
+        CSV[(Topologia Local\nCSV)]
+        EngineSQL{{Engine SQL / CTEs\nDynamic CASE WHEN}}
         BQ[(BigQuery\nrw_mdriver)]
         
-        Tools -->|Query parametrizada| EngineSQL
-        EngineSQL -->|Lê e Agrega| BQ
-        BQ -->|Resultados Agregados| EngineSQL
+        Painel -->|Consolida 5 queries| Tools
+        Tools <-->|1. Lê Produtos/Baias| CSV
+        Tools -->|2. Query parametrizada| EngineSQL
+        EngineSQL -->|3. Executa| BQ
+        BQ -->|4. Retorna DB| EngineSQL
     end
     
-    SA1 <-->|Consulta via| Tools
-    SA2 <-->|Consulta via| Tools
-    SA3 <-->|Consulta via| Tools
-    SA4 <-->|Consulta via| Tools
+    SA1 <-->|Consulta G2G via| Tools
+    SA2 <-->|Consulta Filas via| Tools
+    SA3 <-->|Consulta Passeios via| Tools
+    SA4 <-->|Simula Setup via| Tools
     SA5 <-->|Consulta via| Tools
     
     EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA1
@@ -36,14 +41,16 @@ flowchart TD
     EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA3
     EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA4
     EngineSQL -.->|JSON Enxuto\n(Métricas Mastigadas)| SA5
+    EngineSQL -.->|Super JSON| Painel
 
+    Painel -.->|Super JSON Consolidado| Orquestrador
     SA1 -.->|Resposta estruturada| Orquestrador
     SA2 -.->|Resposta estruturada| Orquestrador
     SA3 -.->|Resposta estruturada| Orquestrador
     SA4 -.->|Resposta estruturada| Orquestrador
     SA5 -.->|Validação Final| Orquestrador
     
-    Orquestrador -.->|Resposta final| User
+    Orquestrador -.->|Framework Executivo| User
 
     %% Estilização de Cores
     classDef userNode fill:#e1bee7,stroke:#333,stroke-width:2px,color:#000;
@@ -55,5 +62,5 @@ flowchart TD
     class User userNode;
     class Orquestrador orquestradorNode;
     class SA1,SA2,SA3,SA4,SA5 subAgenteNode;
-    class BQ dbNode;
-    class Tools,EngineSQL infraNode;
+    class BQ,CSV dbNode;
+    class Tools,Painel,EngineSQL infraNode;
